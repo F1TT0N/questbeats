@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuestBeats — Immersive Music Player for Meta Quest</title>
+<meta name="description" content="QuestBeats — a VR music player for Meta Quest. Play your local, USB and SMB music library in 3D space with rich metadata, cover art and background playback that survives any launched game.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-0: #05060a;
+    --bg-1: #0b0d14;
+    --bg-2: #11141d;
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #e8ecf4;
+    --muted: #9aa3b8;
+    --accent: #7c5cff;
+    --accent-2: #22d3ee;
+    --accent-glow: rgba(124, 92, 255, 0.45);
+    --radius: 14px;
+  }
+
+  html, body {
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* Ambient background */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(900px 600px at 15% -10%, rgba(124, 92, 255, 0.18), transparent 60%),
+      radial-gradient(800px 500px at 95% 10%, rgba(34, 211, 238, 0.14), transparent 60%),
+      radial-gradient(700px 600px at 50% 110%, rgba(124, 92, 255, 0.10), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-bg {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* NAV */
+  header.nav {
+    position: relative;
+    z-index: 2;
+    padding: 22px 0;
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 0.18em;
+  }
+  .logo-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 14px var(--accent-glow);
+  }
+  .nav-links { display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
+  .nav-links a:hover { color: var(--text); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    z-index: 1;
+    padding: 60px 0 100px;
+    text-align: center;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 999px;
+    font-size: 12px; color: var(--muted);
+    backdrop-filter: blur(8px);
+    margin-bottom: 28px;
+  }
+  .badge::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 10px var(--accent-2);
+  }
+  h1.brand {
+    display: inline-block;
+    font-size: clamp(72px, 14vw, 180px);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+    background: linear-gradient(180deg, #ffffff 0%, #b9b1ff 60%, #7c5cff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 80px rgba(124, 92, 255, 0.18));
+    padding: 0 0.15em;
+  }
+  h2.subtitle {
+    font-size: clamp(20px, 2.4vw, 30px);
+    font-weight: 500;
+    letter-spacing: 0.35em;
+    color: var(--accent-2);
+    margin-top: 8px;
+  }
+  .hero p.lead {
+    max-width: 720px;
+    margin: 26px auto 0;
+    color: var(--muted);
+    font-size: 17px;
+  }
+
+  .cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-top: 36px;
+    padding: 14px 26px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), #5b3dff);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    box-shadow: 0 12px 40px -10px var(--accent-glow), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 18px 50px -8px var(--accent-glow), inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+  .cta::after { content: "↗"; font-weight: 400; }
+
+  /* HERO VISUAL */
+  .hero-visual {
+    margin: 56px auto 0;
+    max-width: 760px;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(circle at 50% 50%, rgba(124, 92, 255, 0.4), transparent 60%),
+      linear-gradient(135deg, #1b1530, #0a0d18);
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6), inset 0 0 80px rgba(124, 92, 255, 0.12);
+  }
+  .hero-visual::before, .hero-visual::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 22px);
+  }
+  .hero-visual::after {
+    background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.6) 70%);
+  }
+  .orbit {
+    position: absolute; left: 50%; top: 50%;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    animation: spin 24s linear infinite;
+  }
+  .orbit::after {
+    content: ""; position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    top: -6px; left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 20px var(--accent-2);
+  }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .center-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 130px;
+    height: 130px;
+    border-radius: 28px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(124, 92, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 1;
+    pointer-events: none;
+    animation: float-pulse 6s ease-in-out infinite;
+  }
+
+  @keyframes float-pulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(124, 92, 255, 0.25);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.04);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), 0 0 45px rgba(124, 92, 255, 0.4);
+    }
+  }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; padding: 80px 0; }
+  .section-head {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .section-eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  /* FEATURES */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 900px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+
+  .feature {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px;
+    transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 0%), rgba(124, 92, 255, 0.10), transparent 40%);
+    opacity: 0;
+    transition: opacity .25s ease;
+    pointer-events: none;
+  }
+  .feature:hover { transform: translateY(-4px); border-color: rgba(124, 92, 255, 0.35); }
+  .feature:hover::before { opacity: 1; }
+  .feature .icon {
+    font-size: 26px;
+    width: 48px; height: 48px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(124, 92, 255, 0.18), rgba(34, 211, 238, 0.12));
+    border: 1px solid var(--line);
+    margin-bottom: 16px;
+  }
+  .feature h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feature p {
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+
+  /* FORMATS */
+  .formats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .chip {
+    padding: 10px 16px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all .2s ease;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .chip:hover {
+    color: var(--text);
+    border-color: rgba(124, 92, 255, 0.4);
+    background: rgba(124, 92, 255, 0.08);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--line);
+    margin-top: 60px;
+    padding: 30px 0;
+    color: var(--muted);
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .footer-links { display: flex; gap: 22px; }
+  .footer-links a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo"><span class="logo-dot"></span>QUESTBEATS</a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#formats">Formats</a>
+      <a href="mailto:psopala93@gmail.com">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <span class="badge">Made for Meta Quest</span>
+    <h1 class="brand">QUESTBEATS</h1>
+    <h2 class="subtitle">VR MUSIC PLAYER</h2>
+    <p class="lead">The immersive music player for Meta Quest. Browse your local library, USB drive or SMB network share, queue whole folders, and keep the music going while you launch any VR game.</p>
+    <a href="#features" class="cta">Explore Features</a>
+
+    <div class="hero-visual">
+      <img src="../store_assets/icon_app_512.png" alt="QuestBeats Icon" class="center-icon">
+      <div class="orbit"></div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-eyebrow">What you get</div>
+      <h2 class="section-title">Features</h2>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="icon">🎵</div>
+        <h3>Folder-Based Queueing</h3>
+        <p>Open a folder, tap any track, and the rest of the folder joins the queue automatically. No manual playlist building — just press play.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🖼️</div>
+        <h3>Cover Art &amp; Metadata</h3>
+        <p>Embedded album art plus online lookup of album, release year, cover art and plain lyrics via iTunes and several public lyrics services. Everything is best-effort and degrades gracefully when offline.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🎚️</div>
+        <h3>Rich Playback Controls</h3>
+        <p>Designed for VR — large targets you can hit with a controller at arm's length.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🎧</div>
+        <h3>Background Playback</h3>
+        <p>Runs as a foreground media-playback service. Your music keeps playing when you launch Beat Saber, walk into a meeting room, or just take off the headset.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">💻</div>
+        <h3>Local &amp; USB Storage</h3>
+        <p>Browse internal storage and connected USB drives with NTFS support. Drill folders with VR-friendly controls; only audio files are surfaced in the player.</p>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🌐</div>
+        <h3>SMB Network Shares</h3>
+        <p>Add your NAS or PC, scan the LAN, pick a share, and stream straight from it. Credentials stay encrypted on-device — no cloud sync required.</p>
+      </div>
+
+
+    </div>
+  </div>
+</section>
+
+<section id="formats">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-eyebrow">Compatibility</div>
+      <h2 class="section-title">Supported Formats</h2>
+    </div>
+
+    <div class="formats">
+      <span class="chip">MP3</span>
+      <span class="chip">FLAC</span>
+      <span class="chip">WAV</span>
+      <span class="chip">AAC / M4A</span>
+      <span class="chip">OGG / Vorbis</span>
+      <span class="chip">Opus</span>
+      <span class="chip">ALAC</span>
+      <span class="chip">AIFF</span>
+      <span class="chip">Internal Storage</span>
+      <span class="chip">USB / NTFS</span>
+      <span class="chip">SMB / NAS</span>
+      <span class="chip">Embedded Cover Art</span>
+      <span class="chip">iTunes Lookup</span>
+      <span class="chip">Lyrics</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container footer-inner">
+    <div>©2026 Anwar Studio Official. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="mailto:psopala93@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Subtle cursor-tracking glow on feature cards
+  document.querySelectorAll('.feature').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+</script>
+</body>
+</html>
