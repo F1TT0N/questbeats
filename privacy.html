@@ -188,7 +188,6 @@
       <li><strong>Music library metadata</strong> – File paths, sizes, timestamps and tag readouts from the local scan – stored in the App's private database (Room).</li>
       <li><strong>Recently played tracks</strong> – Track paths you have played – stored locally to power the "recent" list.</li>
       <li><strong>Saved network connections</strong> – Host, share and (encrypted) credentials for SMB shares you have added.</li>
-      <li><strong>HTTP transfer server settings</strong> – Port number and (optional) basic-auth credentials for the on-device Wi-Fi transfer server. Optional credentials are stored locally only and are valid only while the server is running.</li>
       <li><strong>Cached media artwork</strong> – Embedded album art from your files plus thumbnails of cover art fetched online, cached by Coil in the App's private cache directory.</li>
     </ul>
     <p>None of this data leaves your device except for the deliberate online lookups described above. All local data is fully deleted when the App is uninstalled.</p>
@@ -203,7 +202,7 @@
     <p>We do not use any third-party analytics, advertising or tracking service. The App does not embed the Meta Horizon Platform SDK, the Facebook SDK, Google Firebase, Crashlytics, Sentry, Amplitude, Mixpanel, AppCenter or any equivalent.</p>
 
     <h2>5. Data Retention</h2>
-    <p>All locally stored data is retained on your device only for as long as the App is installed. Uninstalling the App permanently deletes all local data, including preferences, music-library cache, saved SMB connections, recent tracks and the HTTP transfer server settings. Cached album art is cleared when the App's cache is cleared or when it is uninstalled.</p>
+    <p>All locally stored data is retained on your device only for as long as the App is installed. Uninstalling the App permanently deletes all local data, including preferences, music-library cache, saved SMB connections and recent tracks. Cached album art is cleared when the App's cache is cleared or when it is uninstalled.</p>
 
     <h2>6. Data Security</h2>
     <p>All data stored by the App is kept in the App's private storage, which is protected by Android's per-app sandbox. Network share credentials for SMB are protected with Android <code>EncryptedSharedPreferences</code> (AES-256). Outbound metadata requests use HTTPS. We do not operate any external server, database, or cloud storage of our own; therefore there is nothing on our side that could be breached.</p>
@@ -224,7 +223,6 @@
       <li><strong>SMB/CIFS network shares</strong> – Optional connections (typically a NAS or a PC) on your local network that you add manually. The App connects directly to the host you specify; this traffic stays within your own network and is not routed through, collected by, or stored on any server operated by us. Credentials you enter for a share are stored only on your device in encrypted form.</li>
       <li><strong>Online metadata endpoints</strong> – As described above, lookups are best-effort and degrade gracefully when offline.</li>
     </ul>
-    <p>The App also includes an <strong>on-device HTTP transfer server</strong> that you can start manually to send audio files from a PC or phone on the same Wi-Fi. That server binds to a local port on the headset (default <code>8080</code>), makes only files you have chosen to expose available over a web UI, and stops the moment you press Stop or close the App. It does not communicate with the public internet.</p>
 
     <h2>9. Sensors and Camera</h2>
     <p>The App uses the Meta Quest headset's head-tracking and controller input to let you navigate the 2D music panel. The App does not access the headset's cameras, microphones or pass-through stream. Sensors are consumed through the standard Quest input services for UI navigation only.</p>
@@ -233,7 +231,7 @@
     <p>The App requests the following Android permissions, all of which are declared in its manifest:</p>
     <ul>
       <li><strong>Media permissions</strong> – <code>READ_MEDIA_AUDIO</code>, <code>READ_MEDIA_VIDEO</code>, <code>READ_MEDIA_IMAGES</code>, <code>READ_EXTERNAL_STORAGE</code>, <code>WRITE_EXTERNAL_STORAGE</code>, <code>MANAGE_EXTERNAL_STORAGE</code> – to discover and play audio files on the headset and on connected USB drives. Files are read for playback only; they are never modified, copied off-device or uploaded.</li>
-      <li><strong>Network permissions</strong> – <code>INTERNET</code>, <code>ACCESS_NETWORK_STATE</code>, <code>ACCESS_WIFI_STATE</code> – to talk to your SMB shares and to fetch metadata. The HTTP transfer server also relies on these.</li>
+      <li><strong>Network permissions</strong> – <code>INTERNET</code>, <code>ACCESS_NETWORK_STATE</code>, <code>ACCESS_WIFI_STATE</code> – to talk to your SMB shares and to fetch metadata.</li>
       <li><strong>Service permissions</strong> – <code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_MEDIA_PLAYBACK</code>, <code>FOREGROUND_SERVICE_DATA_SYNC</code>, <code>FOREGROUND_SERVICE_SPECIAL_USE</code>, <code>POST_NOTIFICATIONS</code>, <code>WAKE_LOCK</code> – to keep music playing in the background, show the system media notification and run file-operation foreground work.</li>
       <li><strong>USB</strong> – <code>android.hardware.usb.host</code> – to read USB drives plugged into the Quest.</li>
     </ul>
@@ -243,7 +241,7 @@
     <p>QuestBeats is suitable for all ages and contains no user-generated content, advertising or social features. The App does not require any personal data to function and therefore does not knowingly or unknowingly collect data from children. Because the App is intended for general audiences, we make no age-verification request; we simply do not collect any data that would warrant one.</p>
 
     <h2>12. Your Rights and Data Deletion</h2>
-    <p>Regardless of your location, you have the right to request deletion of any data associated with your use of the App. All locally stored data resides exclusively on your device. Uninstalling the App permanently deletes all locally stored data, including preferences, music-library cache, recent tracks, saved SMB connections and the HTTP transfer server settings. No fees are charged for data deletion, and no justification is required.</p>
+    <p>Regardless of your location, you have the right to request deletion of any data associated with your use of the App. All locally stored data resides exclusively on your device. Uninstalling the App permanently deletes all locally stored data, including preferences, music-library cache, recent tracks and saved SMB connections. No fees are charged for data deletion, and no justification is required.</p>
     <p>For data held by the third-party endpoints described in section 7 (Apple iTunes, lyrics services), please refer to those services' own privacy policies and account tools. The App does not transmit any account identifier to them — only the artist and track title of the song you are playing.</p>
     <p>If you need any assistance with deleting your data or have questions about this process, please contact us at <strong><a href="mailto:psopala93@gmail.com">psopala93@gmail.com</a></strong> and we will be happy to help.</p>
 
